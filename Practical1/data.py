@@ -139,6 +139,36 @@ def embedding_dict(path):
 
     return embedding_matrix
 
+def pad(tokens, length, pad_value=1):
+    """add padding 1s to a sequence to that it has the desired length"""
+    return tokens + [pad_value] * (length - len(tokens))
+
+def prepare_minibatch(mb, vocab):
+    """
+    Minibatch is a list of examples.
+    This function converts words to IDs and returns
+    torch tensors to be used as input/targets.
+    """
+    batch_size = len(mb)
+    maxlen_premise = max([len(ex["premise"]) for ex in mb])
+    maxlen_hypo = max([len(ex["hypothesis"]) for ex in mb])
+    maxlen = max(maxlen_hypo, maxlen_premise)
+    
+    x_premise = [pad([vocab.w2i.get(t, 0) for t in ex["premise"]], maxlen) for ex in mb]
+    x_hypo = [pad([vocab.w2i.get(t, 0) for t in ex["hypothesis"]], maxlen) for ex in mb]
+
+    x_premise = torch.LongTensor(x_premise)
+    x_premise = x_premise.to(device)
+
+    x_hypo = torch.LongTensor(x_hypo)
+    x_hypo = x_hypo.to(device)
+
+    y = [ex["label"] for ex in mb]
+    y = torch.LongTensor(y)
+    y = y.to(device)
+
+    return x_premise, x_hypo, y
+
 def prepare_example(example, vocab):
     """
     Map tokens to their IDs for a single example
@@ -152,26 +182,39 @@ def prepare_example(example, vocab):
 
     return x
 
+    
+
 if __name__ == "__main__":
 # path = "data\glove.840B.300d.txt"     
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
+
+    # # Replace 'file_name.pkl' with the name of your pickle file
+    # file_name = 'data\embedding_matrix.pickle'
+
+    # # Open the file in read-binary ('rb') mode
+    # with open(file_name, 'rb') as file:
+    #     # Load the data from the file
+    #     data = pickle.load(file)
+
+    # example_1 = dataset["train"]["premise"][0]
+    # a = prepare_example(example_1, vocab)
+    # from model import Average_Encoder, Classifier
+    # encoder = Average_Encoder(len(data), 300, data, device) 
+    # classifier = Classifier(encoder, 300, device)
+
+    # print(encoder)
     dataset = load_data_debug()
     vocab = Vocabulary(dataset)
     vocab.build() 
 
-    # Replace 'file_name.pkl' with the name of your pickle file
-    file_name = 'data\embedding_matrix.pickle'
+    from torch.utils.data import DataLoader
+    from functools import partial
+    my_collate_fn = partial(prepare_minibatch, vocab = vocab)
+    train_loader = DataLoader(dataset["train"], batch_size = 64, shuffle = True, collate_fn = my_collate_fn)
 
-    # Open the file in read-binary ('rb') mode
-    with open(file_name, 'rb') as file:
-        # Load the data from the file
-        data = pickle.load(file)
-
-    example_1 = dataset["train"]["premise"][0]
-    a = prepare_example(example_1, vocab)
-    from model import Average_Encoder, Classifier
-    encoder = Average_Encoder(len(data), 300, data, device) 
-    classifier = Classifier(encoder, 300, device)
-
-    print(encoder)
+    for batch in train_loader:
+        x,y,z = batch[0], batch[1], batch[2]
+        print(x)
+    print(train_loader)

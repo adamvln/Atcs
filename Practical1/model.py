@@ -1,11 +1,12 @@
 import torch.nn as nn
 import torch
 
-class Average_Encoder:
+class Average_Encoder(nn.Module):
     '''
     Encoder that gives a sentence representation based on the mean of all tokens of the sentence.
     '''
     def __init__(self, vocab_size, embedding_size, embedding_table, device):
+        super().__init__()
         self.device = device
         #trainable lookup table with word embeddings
         self.embed = nn.Embedding(vocab_size, embedding_size).to(self.device)
@@ -23,11 +24,12 @@ class Average_Encoder:
         return logits
 
 
-class Classifier:
+class Classifier(nn.Module):
     '''
     Classifier taking an encoder as input to create a relation vector, passed then in a multi-layer perceptron before a softmax layer.
     '''
     def __init__(self, encoder, embedding_dim, device):
+        super().__init__()
         self.device = device
         #initialize the encoder
         self.encoder = encoder
