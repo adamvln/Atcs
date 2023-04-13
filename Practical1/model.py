@@ -1,82 +1,52 @@
-from data import load_data, load_data_debug
-from tqdm import tqdm
-import numpy as np
-import json
-import pickle
+import torch.nn as nn
+import torch
 
-class Vocabulary:
-    def __init__(self, dataset):
-        self.train_dataset = dataset["train"]
-        self.val_dataset = dataset["validation"]
-        self.test_dataset = dataset["test"]
+class Average_Encoder:
+    '''
+    Encoder that gives a sentence representation based on the mean of all tokens of the sentence.
+    '''
+    def __init__(self, vocab_size, embedding_size, embedding_table, device):
+        self.device = device
+        #trainable lookup table with word embeddings
+        self.embed = nn.Embedding(vocab_size, embedding_size).to(self.device)
 
-        self.w2i = {}
-        self.i2w = {}
+        # copy pre-trained word vectors into embeddings table
+        self.embed.weight.data.copy_(torch.from_numpy(embedding_table))
+        # disable training the pre-trained embeddings
+        self.embed.weight.requires_grad = False
 
-        self.embedding_table = []
-
-    def embedding_build(self, embedding_dict):
-
-        for word in tqdm(self.w2i):
-                self.embedding_table.append(embedding_dict[word])
-
-    def build(self):
-        self.w2i["<unk>"] = 0
-        self.w2i["<pad>"] = 1
-        index_token = 2
-
-        splits = [self.train_dataset, self.val_dataset, self.test_dataset]
-  
-        for split in splits:
-            for i in tqdm(range(len(split))):
-                for token in [*split[i]["premise"], *split[i]["hypothesis"]]:
-                    if token not in self.w2i:
-                        self.w2i[token] = index_token
-                        index_token += 1
-
-        self.i2w = {value: key for key, value in self.w2i.items()}
+    def forward(self, inputs):
+        #this should output a (L x embedding_size) matrix
+        embeds = self.embed(inputs)
+        #mean over all encoders
+        logits = torch.mean(embeds, dim = 1)
+        return logits
 
 
-def filereader(path): 
-  with open(path, mode="r", encoding="utf-8") as f:
-    for line in f:
-      yield line.strip().replace("\\","")
+class Classifier:
+    '''
+    Classifier taking an encoder as input to create a relation vector, passed then in a multi-layer perceptron before a softmax layer.
+    '''
+    def __init__(self, encoder, embedding_dim, device):
+        self.device = device
+        #initialize the encoder
+        self.encoder = encoder
 
-# def data_to_embeddings(vocab, path_to_pretrained):
+        #set up the multilayer perceptron and the softmax layer
+        self.linear = nn.Linear(4 * embedding_dim, 3).to(self.device)
+        self.softmax = nn.Softmax(dim = 1).to(self.device)
 
-def embedding_dict(path):
+    def forward(self, input_p, input_h):   
+        #create the relational vector that is feed to the mutli-layer perceptron
+        embed_p = self.encoder.forward(input_p)
+        embed_h = self.encoder.forward(input_h)
+        self.relation_vector = torch.cat((embed_p, embed_h, torch.abs(torch.sub(embed_p,embed_h)), torch.mul(embed_p, embed_h)), dim=1).to(self.device)
 
-    i = 0
-    embedding_table = {}
-    for line in tqdm(filereader(path)):
-        embedding_table[line.split(" ",1)[0]] = line.split(" ",1)[1].split()
+        #input of size (1x1200) fed to the multi layer perceptron
+        logits = self.linear(self.relation_vector)
+        logits = self.softmax(logits)
 
-
-    vocab = Vocabulary(load_data())
-    vocab.build()
-
-    embedding_matrix = np.zeros((len(vocab.w2i), 300))
-    for i,word in tqdm(enumerate(vocab.w2i)):
-        if word in embedding_table:
-            embedding_matrix[i] = [np.float32(embedding) for embedding in embedding_table[word]]
-
-    with open("data\embedding_matrix.pickle", 'wb') as f:
-        pickle.dump(embedding_matrix, f)
-
-
-    return embedding_table
+        return logits
 
 
-if __name__ == "__main__":
-    # word_2_index, index_2_word = vocabulary(load_data_debug())
-    # print(index_2_word)
-    path = "data\glove.840B.300d.txt"
-    # lower = False
-    # i = 0
-    # for line in filereader(path):
-    #     print(line.split(" ",1)[0])
-    #     print(line.split(" ",1)[1].split())
-    #     i += 1
-    #     if i >4:
-    #         break
-    embedding_dict(path)
+
