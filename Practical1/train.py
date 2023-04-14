@@ -71,15 +71,18 @@ if __name__ == "__main__":
     val_loader = DataLoader(dataset["validation"], batch_size = 64, shuffle = True, collate_fn = my_collate_fn)
     import pickle
     # Replace 'file_name.pkl' with the name of your pickle file
-    file_name = 'Practical1\data\embedding_matrix.pickle'
+    file_name = 'data\embedding_matrix.pickle'
 
     # Open the file in read-binary ('rb') mode
     with open(file_name, 'rb') as file:
         # Load the data from the file
         data = pickle.load(file)
 
-    from model import Average_Encoder, Classifier
-    encoder = Average_Encoder(len(data), 300, data, device) 
+    from model import Average_Encoder, Classifier, Unidir_LSTM, Bidirect_LSTM
+    encoder_1 = Unidir_LSTM(len(data), 300, 2048, data, device) 
+    encoder_2 = Average_Encoder(len(data), 300, data, device)
+    encoder_3 = Bidirect_LSTM(len(data), 300, 2048, data, device)
+
     classifier = Classifier(encoder, 300, device)
 
-    train_model(classifier, train_loader, val_loader, 1, 0.01, "test", device)
+    # train_model(classifier, train_loader, val_loader, 1, 0.01, "test", device)

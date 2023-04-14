@@ -84,8 +84,6 @@ class Vocabulary:
         self.w2i["<pad>"] = 1
         index_token = 2
 
-        splits = [self.train_dataset, self.val_dataset, self.test_dataset]
-
         for i in tqdm(range(len(self.train_dataset))):
             for token in [*self.train_dataset[i]["premise"], *self.train_dataset[i]["hypothesis"]]:
                 if token not in self.w2i:
@@ -189,7 +187,7 @@ if __name__ == "__main__":
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-
+    embedding_dict("data\glove.840B.300d.txt")
     # # Replace 'file_name.pkl' with the name of your pickle file
     # file_name = 'data\embedding_matrix.pickle'
 
@@ -205,16 +203,22 @@ if __name__ == "__main__":
     # classifier = Classifier(encoder, 300, device)
 
     # print(encoder)
-    dataset = load_data_debug()
-    vocab = Vocabulary(dataset)
-    vocab.build() 
+    # dataset = load_data_debug()
+    # vocab = Vocabulary(dataset)
+    # vocab.build() 
 
-    from torch.utils.data import DataLoader
-    from functools import partial
-    my_collate_fn = partial(prepare_minibatch, vocab = vocab)
-    train_loader = DataLoader(dataset["train"], batch_size = 64, shuffle = True, collate_fn = my_collate_fn)
+    # from torch.utils.data import DataLoader
+    # from functools import partial
+    # my_collate_fn = partial(prepare_minibatch, vocab = vocab)
+    # train_loader = DataLoader(dataset["train"], batch_size = 64, shuffle = True, collate_fn = my_collate_fn)
 
-    for batch in train_loader:
-        x,y,z = batch[0], batch[1], batch[2]
-        print(x)
-    print(train_loader)
+    # for batch in train_loader:
+    #     x,y,z = batch[0], batch[1], batch[2]
+    #     print(x)
+    # print(train_loader)
+
+    #PROBLEME AVEC LA DATA 
+    # LE PROBLEME EST QUE LES INPUTS TENSORS QUI ONT DES MOTS REMPLACES PAR DES INDEX ONT UN INPUT PLUS GRAND QUE LA DATA MATRIX
+    # C NORMAL CELA VEUT DIRE QUE CERTAINS MOTS NONT PAS DEMBEDDINGS DANS LE GLOVE PRETRAINED VECTOR SET 
+    # CES MOTS DANS LA DAAT MATRIX SONT REFERES A DES UNKNOWN WORD IE DES INDEX 0 
+    # JUSTE REMPLACONS LES PAR 0
