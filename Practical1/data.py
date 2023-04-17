@@ -113,16 +113,17 @@ def embedding_dict(path):
     '''
 
     #build the vocabulary based on the load_data function
-    vocab = Vocabulary(load_data_debug())
+    print("Construction of the vocabulary")
+    vocab = Vocabulary(load_data())
     vocab.build()    
-    i = 0
+    print("Vocabulary built")
 
     #initialize the embedding matrix
     embedding_matrix = []
     embedding_matrix.append(list(np.random.uniform(-1, 1, (300,))))
     embedding_matrix.append(list(np.random.uniform(-1, 1, (300,))))
 
-
+    print("Creation of embedding matrix")
     for line in tqdm(filereader(path)):
         if line.split(" ",1)[0] in vocab.w2i:
             embedding_matrix.append(np.float32(line.split(" ",1)[1].split()))
@@ -152,8 +153,8 @@ def prepare_minibatch(mb, vocab):
     maxlen_hypo = max([len(ex["hypothesis"]) for ex in mb])
     maxlen = max(maxlen_hypo, maxlen_premise)
     
-    x_premise = [pad([vocab.w2i.get(t, 0) for t in ex["premise"]], maxlen) for ex in mb]
-    x_hypo = [pad([vocab.w2i.get(t, 0) for t in ex["hypothesis"]], maxlen) for ex in mb]
+    x_premise = [pad([vocab.get(t, 0) for t in ex["premise"]], maxlen) for ex in mb]
+    x_hypo = [pad([vocab.get(t, 0) for t in ex["hypothesis"]], maxlen) for ex in mb]
 
     x_premise = torch.LongTensor(x_premise)
     x_premise = x_premise.to(device)
@@ -187,7 +188,7 @@ if __name__ == "__main__":
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-    embedding_dict("data\glove.840B.300d.txt")
+    embedding_dict("data/glove.840B.300d.txt")
     # # Replace 'file_name.pkl' with the name of your pickle file
     # file_name = 'data\embedding_matrix.pickle'
 

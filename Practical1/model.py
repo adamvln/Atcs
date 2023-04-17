@@ -21,7 +21,7 @@ class Average_Encoder(nn.Module):
         self.output_dim = 300
 
     def forward(self, inputs):
-        inputs[inputs > self.vocab_size] = 0
+        inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
         #mean over all encoders
@@ -53,7 +53,7 @@ class Unidir_LSTM(nn.Module):
         self.output_dim = hidden_size
 
     def forward(self, inputs):
-        inputs[inputs > self.vocab_size] = 0
+        inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
         #hidden and cell states initialization
@@ -92,7 +92,7 @@ class Bidirect_LSTM(nn.Module):
         self.output_dim = hidden_size * 2
 
     def forward(self, inputs):
-        inputs[inputs > self.vocab_size] = 0
+        inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
         #hidden and cell states initialization
@@ -140,7 +140,7 @@ class Bidirect_LSTM_Max_Pooling(nn.Module):
 
 
     def forward(self, inputs):
-        inputs[inputs > self.vocab_size] = 0
+        inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
         #hidden and cell states initialization
