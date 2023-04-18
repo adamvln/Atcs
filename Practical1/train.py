@@ -65,7 +65,7 @@ def train_model(model, train_loader, val_loader, num_epochs, learning_rate, trai
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--lr', default = 0.01, type = float, help = "learning_rate")
+    parser.add_argument('--lr', default = 0.1, type = float, help = "learning_rate")
     parser.add_argument('--epochs', default = 10, type = int, help = "epochs")
     parser.add_argument('--batch_size', default=64, type=int,
                         help='Minibatch size')

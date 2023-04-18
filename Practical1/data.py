@@ -119,18 +119,29 @@ def embedding_dict(path):
     print("Vocabulary built")
 
     #initialize the embedding matrix
-    embedding_matrix = []
-    embedding_matrix.append(list(np.random.uniform(-1, 1, (300,))))
-    embedding_matrix.append(list(np.random.uniform(-1, 1, (300,))))
+    # embedding_matrix = []
+    # embedding_matrix.append(list(np.random.uniform(-1, 1, (300,))))
+    # embedding_matrix.append(list(np.random.uniform(-1, 1, (300,))))
+
+    # print("Creation of embedding matrix")
+    # for line in tqdm(filereader(path)):
+    #     if line.split(" ",1)[0] in vocab.w2i:
+    #         embedding_matrix.append(np.float32(line.split(" ",1)[1].split()))
+
+    # embedding_matrix = np.stack(embedding_matrix, axis = 0)
+
+    embedding_matrix = np.zeros((len(vocab.w2i), 300))
+    embedding_matrix[0] = list(np.random.uniform(-1, 1, (300,)))
+    embedding_matrix[1] = list(np.random.uniform(-1, 1, (300,)))
 
     print("Creation of embedding matrix")
     for line in tqdm(filereader(path)):
         if line.split(" ",1)[0] in vocab.w2i:
-            embedding_matrix.append(np.float32(line.split(" ",1)[1].split()))
-        
-    
-    embedding_matrix = np.stack(embedding_matrix, axis = 0)
+            # embedding_matrix.append(np.float32(line.split(" ",1)[1].split()))
+            embedding_matrix[vocab.w2i[line.split(" ",1)[0]]] = np.float32(line.split(" ",1)[1].split())
 
+    zero_rows = np.all(embedding_matrix == 0, axis = 1)
+    embedding_matrix[zero_rows] = embedding_matrix[0]
 
     with open("data\embedding_matrix.pickle", 'wb') as f:
         pickle.dump(embedding_matrix, f)
@@ -188,7 +199,7 @@ if __name__ == "__main__":
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-    embedding_dict("data/glove.840B.300d.txt")
+    embedding_dict("Practical1/data/glove.840B.300d.txt")
     # # Replace 'file_name.pkl' with the name of your pickle file
     # file_name = 'data\embedding_matrix.pickle'
 
