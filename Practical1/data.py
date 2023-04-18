@@ -30,7 +30,8 @@ def load_data():
     snli_dataset = load_dataset("snli")
 
     for split in ['train', 'validation', 'test']:
-        snli_dataset[split] = snli_dataset[split].map(preprocess).filter(lambda x: x is not None)
+        snli_dataset[split] = snli_dataset[split].map(preprocess)
+        snli_dataset[split] = snli_dataset[split].filter(filter_examples)
 
     return snli_dataset
 
@@ -44,9 +45,6 @@ def preprocess(example):
     Return : 
         example object preprocessed
     '''
-
-    if example["label"] == -1:
-        return None
     
     example["premise"] = nltk.tokenize.word_tokenize(example["premise"])
     example["hypothesis"] = nltk.tokenize.word_tokenize(example["hypothesis"])
@@ -58,6 +56,18 @@ def preprocess(example):
     example["hypothesis"] = lowercase_hypothesis
 
     return example
+
+def filter_examples(example):
+    '''
+    Filters out examples with label -1.
+    Args :
+        example : iteration of the split of the dictionnary containing the SNLI dataset, of the form
+            {'premise' : sentence1, 'hypothesis' : sentence2, label}
+    
+    Return : 
+        True if example should be kept, False if it should be discarded
+    '''
+    return example["label"] != -1
 
 def load_data_debug():
     snli_dataset = load_dataset("snli")
@@ -118,7 +128,7 @@ def embedding_dict(path):
 
     #build the vocabulary based on the load_data function
     print("Construction of the vocabulary")
-    vocab = Vocabulary(load_data())
+    vocab = Vocabulary(load_data_debug())
     vocab.build()    
     print("Vocabulary built")
 
@@ -202,7 +212,7 @@ if __name__ == "__main__":
 # path = "data\glove.840B.300d.txt"     
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
+    # load_data()
     embedding_dict("data/glove.840B.300d.txt")
     # # Replace 'file_name.pkl' with the name of your pickle file
     # file_name = 'data\embedding_matrix.pickle'
