@@ -30,7 +30,7 @@ def load_data():
     snli_dataset = load_dataset("snli")
 
     for split in ['train', 'validation', 'test']:
-        snli_dataset[split] = snli_dataset[split].map(preprocess)
+        snli_dataset[split] = snli_dataset[split].map(preprocess).filter(lambda x: x is not None)
 
     return snli_dataset
 
@@ -44,6 +44,10 @@ def preprocess(example):
     Return : 
         example object preprocessed
     '''
+
+    if example["label"] == -1:
+        return None
+    
     example["premise"] = nltk.tokenize.word_tokenize(example["premise"])
     example["hypothesis"] = nltk.tokenize.word_tokenize(example["hypothesis"])
 
