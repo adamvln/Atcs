@@ -146,7 +146,7 @@ def embedding_dict(path):
     with open("data\embedding_matrix.pickle", 'wb') as f:
         pickle.dump(embedding_matrix, f)
 
-
+    print("Embedding_matrix created")
     return embedding_matrix
 
 def pad(tokens, length, pad_value=1):
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-    embedding_dict("Practical1/data/glove.840B.300d.txt")
+    embedding_dict("data/glove.840B.300d.txt")
     # # Replace 'file_name.pkl' with the name of your pickle file
     # file_name = 'data\embedding_matrix.pickle'
 

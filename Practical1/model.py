@@ -21,7 +21,7 @@ class Average_Encoder(nn.Module):
         self.output_dim = 300
 
     def forward(self, inputs):
-        inputs[inputs > self.vocab_size - 1] = 0
+        # inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
         #mean over all encoders
@@ -53,7 +53,7 @@ class Unidir_LSTM(nn.Module):
         self.output_dim = hidden_size
 
     def forward(self, inputs):
-        inputs[inputs > self.vocab_size - 1] = 0
+        # inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
         #hidden and cell states initialization
@@ -92,7 +92,7 @@ class Bidirect_LSTM(nn.Module):
         self.output_dim = hidden_size * 2
 
     def forward(self, inputs):
-        inputs[inputs > self.vocab_size - 1] = 0
+        # inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
         #hidden and cell states initialization
@@ -140,7 +140,7 @@ class Bidirect_LSTM_Max_Pooling(nn.Module):
 
 
     def forward(self, inputs):
-        inputs[inputs > self.vocab_size - 1] = 0
+        # inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
         #hidden and cell states initialization
@@ -183,14 +183,19 @@ class Classifier(nn.Module):
     '''
     Classifier taking an encoder as input to create a relation vector, passed then in a multi-layer perceptron before a softmax layer.
     '''
-    def __init__(self, encoder, embedding_dim, device):
+    def __init__(self, encoder, hidden_dim, n_classes, device):
         super().__init__()
         self.device = device
         #initialize the encoder
         self.encoder = encoder
 
-        #set up the multilayer perceptron and the softmax layer
-        self.linear = nn.Linear(4 * self.encoder.output_dim, 3).to(self.device)
+        #set up the multilayer perceptron
+        self.classifier = nn.Sequential(
+            nn.Linear(4 * self.encoder.output_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.Tanh(),
+            nn.Linear(hidden_dim, n_classes)).to(self.device)
 
     def forward(self, input_p, input_h):   
         #create the relational vector that is feed to the mutli-layer perceptron
@@ -198,9 +203,7 @@ class Classifier(nn.Module):
         embed_h = self.encoder(input_h)
         self.relation_vector = torch.cat((embed_p, embed_h, torch.abs(torch.sub(embed_p,embed_h)), torch.mul(embed_p, embed_h)), dim=1).to(self.device)
 
-        #input of size (1x1200) fed to the multi layer perceptron
-        logits = self.linear(self.relation_vector)
-        # logits = self.softmax(logits)
+        logits = self.classifier(self.relation_vector)
 
         return logits
 
