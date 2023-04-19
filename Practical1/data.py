@@ -98,11 +98,13 @@ class Vocabulary:
         self.w2i["<pad>"] = 1
         index_token = 2
 
-        for i in tqdm(range(len(self.train_dataset))):
-            for token in [*self.train_dataset[i]["premise"], *self.train_dataset[i]["hypothesis"]]:
-                if token not in self.w2i:
-                    self.w2i[token] = index_token
-                    index_token += 1
+        splits = [self.train_dataset, self.val_dataset, self.test_dataset]
+        for split in splits:
+            for i in tqdm(range(len(split))):
+                for token in [*split[i]["premise"], *split[i]["hypothesis"]]:
+                    if token not in self.w2i:
+                        self.w2i[token] = index_token
+                        index_token += 1
 
         self.i2w = {value: key for key, value in self.w2i.items()}
 
@@ -128,9 +130,12 @@ def embedding_dict(path):
 
     #build the vocabulary based on the load_data function
     print("Construction of the vocabulary")
-    vocab = Vocabulary(load_data_debug())
+    vocab = Vocabulary(load_data())
     vocab.build()    
     print("Vocabulary built")
+
+    with open('data/data.json', 'w') as outfile:
+        json.dump(vocab.w2i, outfile)
 
     #initialize the embedding matrix
     # embedding_matrix = []
