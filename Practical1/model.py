@@ -62,7 +62,7 @@ class Unidir_LSTM(nn.Module):
 
         #only the last hidden state matters
         for i in range(0, len(embeds[0])):
-            hidden_state, _ = self.LSTM_layer(embeds[:,i], (hidden_state, cell_state))
+            hidden_state, cell_state = self.LSTM_layer(embeds[:,i], (hidden_state, cell_state))
 
         return hidden_state
     
@@ -103,11 +103,11 @@ class Bidirect_LSTM(nn.Module):
         cell_state_backward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
         #compute the last hidden state for the forward LSTM
         for i in range(0, len(embeds[0])):
-            hidden_state_forward, _ = self.forward_LSTM(embeds[:,i], (hidden_state_backward, cell_state_backward))
+            hidden_state_forward, cell_state_forward = self.forward_LSTM(embeds[:,i], (hidden_state_forward, cell_state_forward))
 
         #compute the last hidden state for the backward LSTM
         for i in range(len(embeds[0]) -1, -1, -1):
-            hidden_state_backward, _ = self.backward_LSTM(embeds[:,i], (hidden_state_backward, cell_state_backward))
+            hidden_state_backward, cell_state_backward = self.backward_LSTM(embeds[:,i], (hidden_state_backward, cell_state_backward))
 
         #return the concatenation of both hidden_states
         return torch.cat((hidden_state_forward, hidden_state_backward), dim = 1)
@@ -155,11 +155,11 @@ class Bidirect_LSTM_Max_Pooling(nn.Module):
 
         #compute the last hidden state for the forward LSTM
         for i in range(0, len(embeds[0])):
-            hidden_state_forward, _ = self.forward_LSTM(embeds[:,i], (hidden_state_backward, cell_state_backward))
+            hidden_state_forward, cell_state_forward = self.forward_LSTM(embeds[:,i], (hidden_state_forward, cell_state_forward))
             hidden_states_f.append(hidden_state_forward)
         #compute the last hidden state for the backward LSTM
         for i in range(len(embeds[0]) -1, -1, -1):
-            hidden_state_backward, _ = self.backward_LSTM(embeds[:,i], (hidden_state_backward, cell_state_backward))
+            hidden_state_backward, cell_state_backward = self.backward_LSTM(embeds[:,i], (hidden_state_backward, cell_state_backward))
             hidden_states_b.append(hidden_state_backward)
 
         #reverse the backward list to prepare concatenation
