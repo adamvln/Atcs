@@ -73,14 +73,7 @@ def train_model(model, train_loader, val_loader, num_epochs, learning_rate, trai
         writer.add_scalar('Accuracy/test', current_val_accuracy, epoch)
 
         checkpoint_path = os.path.join("model_checkpoint", f'{training_name}_checkpoint_epoch{epoch}.pt')
-        torch.save({
-            'epoch': epoch,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'train_loss': train_avg_loss,
-            'valid_loss' : valid_avg_loss,
-            'correct_preds' : valid_preds
-        }, checkpoint_path)
+        torch.save(model, checkpoint_path)
 
         print(f'Epoch {epoch}: Train loss = {train_avg_loss:.4f}, Valid loss = {valid_avg_loss:.4f}, Valid accuracy = {valid_preds/len(val_loader.dataset):.4f}')
 
