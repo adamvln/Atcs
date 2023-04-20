@@ -128,36 +128,18 @@ def embedding_dict(path):
         path : path of the .txt with the glove embeddings
     '''
 
-    #build the vocabulary based on the load_data function
-    print("Construction of the vocabulary")
-    vocab = Vocabulary(load_data())
-    vocab.build()    
-    print("Vocabulary built")
+    #load the vocabulary
+    with open('data/data.json', 'r') as outfile:
+        vocab_w2i = json.load(outfile)
 
-    with open('data/data.json', 'w') as outfile:
-        json.dump(vocab.w2i, outfile)
-
-    #initialize the embedding matrix
-    # embedding_matrix = []
-    # embedding_matrix.append(list(np.random.uniform(-1, 1, (300,))))
-    # embedding_matrix.append(list(np.random.uniform(-1, 1, (300,))))
-
-    # print("Creation of embedding matrix")
-    # for line in tqdm(filereader(path)):
-    #     if line.split(" ",1)[0] in vocab.w2i:
-    #         embedding_matrix.append(np.float32(line.split(" ",1)[1].split()))
-
-    # embedding_matrix = np.stack(embedding_matrix, axis = 0)
-
-    embedding_matrix = np.zeros((len(vocab.w2i), 300))
+    embedding_matrix = np.zeros((len(vocab_w2i), 300))
     embedding_matrix[0] = list(np.random.uniform(-1, 1, (300,)))
     embedding_matrix[1] = list(np.random.uniform(-1, 1, (300,)))
 
     print("Creation of embedding matrix")
     for line in tqdm(filereader(path)):
-        if line.split(" ",1)[0] in vocab.w2i:
-            # embedding_matrix.append(np.float32(line.split(" ",1)[1].split()))
-            embedding_matrix[vocab.w2i[line.split(" ",1)[0]]] = np.float32(line.split(" ",1)[1].split())
+        if line.split(" ",1)[0] in vocab_w2i:
+            embedding_matrix[vocab_w2i[line.split(" ",1)[0]]] = np.float32(line.split(" ",1)[1].split())
 
     zero_rows = np.all(embedding_matrix == 0, axis = 1)
     embedding_matrix[zero_rows] = embedding_matrix[0]
@@ -204,7 +186,7 @@ def prepare_example(example, vocab):
     """
     
     # vocab returns 0 if the word is not there (i2w[0] = <unk>)
-    x = [vocab.w2i.get(t, 0) for t in example]
+    x = [vocab.get(t, 0) for t in example]
     
     x = torch.LongTensor([x])
     x = x.to(device)
@@ -219,6 +201,7 @@ if __name__ == "__main__":
 
     # load_data()
     embedding_dict("data/glove.840B.300d.txt")
+
     # # Replace 'file_name.pkl' with the name of your pickle file
     # file_name = 'data\embedding_matrix.pickle'
 
