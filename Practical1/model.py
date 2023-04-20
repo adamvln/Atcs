@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 class Average_Encoder(nn.Module):
     '''
@@ -47,7 +48,7 @@ class Unidir_LSTM(nn.Module):
         self.embed.weight.requires_grad = False
 
         #LSTM cell
-        self.LSTM_layer = nn.LSTMCell(embedding_size, hidden_size).to(self.device)
+        self.LSTM_layer = nn.LSTM(embedding_size, hidden_size, batch_first=True).to(self.device)
 
         #dimension output
         self.output_dim = hidden_size
@@ -56,13 +57,11 @@ class Unidir_LSTM(nn.Module):
         # inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
+        input_length = torch.tensor([torch.sum(row != 1).item() for row in inputs])
         #hidden and cell states initialization
-        hidden_state = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
-        cell_state = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
-
-        #only the last hidden state matters
-        for i in range(0, len(embeds[0])):
-            hidden_state, cell_state = self.LSTM_layer(embeds[:,i], (hidden_state, cell_state))
+        packed_embeds = pack_padded_sequence(embeds, input_length, batch_first=True, enforce_sorted=False)
+        packed_output, (hidden_state, cell_state) = self.LSTM_layer(packed_embeds)
+        hidden_state = hidden_state.squeeze(0)
 
         return hidden_state
     
@@ -85,8 +84,7 @@ class Bidirect_LSTM(nn.Module):
         self.embed.weight.requires_grad = False
 
         #LSTM cell
-        self.forward_LSTM = nn.LSTMCell(embedding_size, hidden_size).to(self.device)
-        self.backward_LSTM = nn.LSTMCell(embedding_size, hidden_size).to(self.device)
+        self.LSTM = nn.LSTM(embedding_size, hidden_size, bidirectional = True).to(self.device)
 
         #dimension output
         self.output_dim = hidden_size * 2
@@ -95,19 +93,15 @@ class Bidirect_LSTM(nn.Module):
         # inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
-        #hidden and cell states initialization
-        hidden_state_forward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
-        cell_state_forward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
+        input_length = torch.tensor([torch.sum(row != 1).item() for row in inputs])
 
-        hidden_state_backward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
-        cell_state_backward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
-        #compute the last hidden state for the forward LSTM
-        for i in range(0, len(embeds[0])):
-            hidden_state_forward, cell_state_forward = self.forward_LSTM(embeds[:,i], (hidden_state_forward, cell_state_forward))
-
-        #compute the last hidden state for the backward LSTM
-        for i in range(len(embeds[0]) -1, -1, -1):
-            hidden_state_backward, cell_state_backward = self.backward_LSTM(embeds[:,i], (hidden_state_backward, cell_state_backward))
+        #Handle padding
+        packed_embeds = pack_padded_sequence(embeds, input_length, batch_first=True, enforce_sorted=False)
+        packed_output, (hidden_state, _) = self.LSTM_layer(packed_embeds)
+        
+        # Extract the last hidden states for forward and backward LSTMs
+        hidden_state_forward = hidden_state[0]
+        hidden_state_backward = hidden_state[1]
 
         #return the concatenation of both hidden_states
         return torch.cat((hidden_state_forward, hidden_state_backward), dim = 1)
@@ -131,8 +125,7 @@ class Bidirect_LSTM_Max_Pooling(nn.Module):
         self.embed.weight.requires_grad = False
 
         #LSTM cell
-        self.forward_LSTM = nn.LSTMCell(embedding_size, hidden_size).to(self.device)
-        self.backward_LSTM = nn.LSTMCell(embedding_size, hidden_size).to(self.device)
+        self.LSTM = nn.LSTM(embedding_size, hidden_size, bidirectional = True).to(self.device)
 
         #dimension output
         self.output_dim = hidden_size * 2
@@ -143,39 +136,15 @@ class Bidirect_LSTM_Max_Pooling(nn.Module):
         # inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
-        #hidden and cell states initialization
-        hidden_state_forward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
-        cell_state_forward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
+        input_length = torch.tensor([torch.sum(row != 1).item() for row in inputs])
 
-        hidden_state_backward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
-        cell_state_backward = torch.zeros((len(embeds), self.hidden_size)).to(self.device)
-
-        hidden_states_f = []
-        hidden_states_b = []
-
-        #compute the last hidden state for the forward LSTM
-        for i in range(0, len(embeds[0])):
-            hidden_state_forward, cell_state_forward = self.forward_LSTM(embeds[:,i], (hidden_state_forward, cell_state_forward))
-            hidden_states_f.append(hidden_state_forward)
-        #compute the last hidden state for the backward LSTM
-        for i in range(len(embeds[0]) -1, -1, -1):
-            hidden_state_backward, cell_state_backward = self.backward_LSTM(embeds[:,i], (hidden_state_backward, cell_state_backward))
-            hidden_states_b.append(hidden_state_backward)
-
-        #reverse the backward list to prepare concatenation
-        hidden_states_b = hidden_states_b[::-1]
-
-        #list to store concatenated tensor
-        concatenated_h_states = []
-
-        # Iterate through the lists and concatenate the tensors element-wise
-        for i in range(len(hidden_states_f)):
-            concatenated_h_state = torch.cat((hidden_states_f[i], hidden_states_b[i]), dim=1)
-            concatenated_h_states.append(concatenated_h_state)
+        #Handle padding
+        packed_embeds = pack_padded_sequence(embeds, input_length, batch_first=True, enforce_sorted=False)
+        packed_output, (hidden_state, _) = self.LSTM(packed_embeds)
+        output, _ = pad_packed_sequence(packed_output, batch_first=True)
 
         #prepare max pooling
-        concatenate_stack = torch.stack(concatenated_h_states, dim = 0)
-        max_pooled, _ = torch.max(concatenate_stack, dim = 0)
+        max_pooled, _ = torch.max(output, dim=1)
 
         return max_pooled
     
