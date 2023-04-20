@@ -44,7 +44,7 @@ The main code is located in 5 python files.
                      Takes one flag as an argument : 
                      * --path_to_model : path to checkpoint
 
-# How to train and evaluate a model ?
+## How to train and evaluate a model ?
 
 Following these steps : 
 - Download the pretrained word embeddings from Glove.
@@ -60,7 +60,7 @@ Following these steps :
 
 - Evaluation on the SentEval Framework using senteval_eval.py using the path to the checkpoint model as flag. 
 
-# Results
+## Results
 
 ##On SNLI Dataset
 
