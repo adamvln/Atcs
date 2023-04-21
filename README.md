@@ -18,6 +18,8 @@ conda install -c anaconda nltk
 
 ## Structure of the code
 
+Be sure to be inside the Practical1 folder to run the python files in command lines.
+
 The main code is located in 5 python files.
 - data.py : this file loads the SNLI dataset that will be further used for training. It comprises preprocessing steps that tokenize and lowercase 
             the sentences of dataset. In addition, it creates the embedding matrix that is loaded in the data folder (data/embedding_matrix.pickle).
@@ -62,7 +64,8 @@ Following these steps :
 - Evaluation on the SNLI dataset by running eval.py with the appropriate flag leading to the model checkpoint
   located in the model_checkpoint folder.
 
-- Evaluation on the SentEval Framework using senteval_eval.py using the path to the checkpoint model as flag. 
+- Evaluation on the SentEval Framework using senteval_eval.py using the path to the checkpoint model as flag. The SentEval repository is added as a submodule to this repository. 
+  If working from the zip file, do not git clone SentEval but just follow their README to download the data. 
 
 ## Results
 
