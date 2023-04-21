@@ -1,5 +1,9 @@
 # ATCS : Reproduction of "Supervised Learning of Universal Sentence Representations from Natural Language Inference Data"
 
+## Download link of pre-trained models 
+
+https://drive.google.com/drive/folders/1-sZ6OJudssRCEkijydCYbY5Zn2QY-Yub?usp=sharing
+
 ## Package and Dependencies
 
 The environment that I used is the one provided during DeepLearning 1. It is a course provided by Uva which has a github repository that can be found here : 
