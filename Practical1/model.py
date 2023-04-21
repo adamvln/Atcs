@@ -21,13 +21,19 @@ class Average_Encoder(nn.Module):
         #dimension output
         self.output_dim = 300
 
+
     def forward(self, inputs):
         # inputs[inputs > self.vocab_size - 1] = 0
         #this should output a (L x embedding_size) matrix
         embeds = self.embed(inputs)
-        #mean over all encoders
-        logits = torch.mean(embeds, dim = 1)
-        return logits
+        input_length = torch.tensor([torch.sum(row != 1).item() for row in inputs])
+        #hidden and cell states initializationinputs[0]
+        packed_embeds = pack_padded_sequence(embeds, input_length, batch_first=True, enforce_sorted=False)
+        _, (hidden_state, _) = self.LSTM_layer(packed_embeds)
+
+        hidden_state = hidden_state.squeeze(0)
+
+        return hidden_state
     
 class Unidir_LSTM(nn.Module):
     '''
@@ -60,7 +66,7 @@ class Unidir_LSTM(nn.Module):
         input_length = torch.tensor([torch.sum(row != 1).item() for row in inputs])
         #hidden and cell states initialization
         packed_embeds = pack_padded_sequence(embeds, input_length, batch_first=True, enforce_sorted=False)
-        packed_output, (hidden_state, cell_state) = self.LSTM_layer(packed_embeds)
+        _, (hidden_state, _) = self.LSTM_layer(packed_embeds)
         hidden_state = hidden_state.squeeze(0)
 
         return hidden_state
@@ -167,7 +173,7 @@ class Classifier(nn.Module):
             nn.Linear(hidden_dim, n_classes)).to(self.device)
 
     def forward(self, input_p, input_h):   
-        #create the relational vector that is feed to the mutli-layer perceptron
+        #create the relational vector that is fed to the mutli-layer perceptron
         embed_p = self.encoder(input_p)
         embed_h = self.encoder(input_h)
         self.relation_vector = torch.cat((embed_p, embed_h, torch.abs(torch.sub(embed_p,embed_h)), torch.mul(embed_p, embed_h)), dim=1).to(self.device)
