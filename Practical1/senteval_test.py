@@ -94,6 +94,8 @@ def batcher(params, batch, encoder, vocab):
     # you can change it into NULL dependening in your model
     batch = [sent if sent != [] else ['.'] for sent in batch]
 
+    batch = [word.lower() for word in batch]
+
     batch = prepare_minibatch(batch, vocab_w2i)
     logits = encoder(batch).cpu()
 
