@@ -119,8 +119,6 @@ def filereader(path):
         for line in f:
             yield line.strip().replace("\\","")
 
-# def data_to_embeddings(vocab, path_to_pretrained):
-
 def embedding_dict(path):
     '''
     Create the embedding matrix, with unknown and padding token at line 1 and 2
@@ -196,43 +194,4 @@ def prepare_example(example, vocab):
     
 
 if __name__ == "__main__":
-# path = "data\glove.840B.300d.txt"     
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # load_data()
     embedding_dict("data/glove.840B.300d.txt")
-
-    # # Replace 'file_name.pkl' with the name of your pickle file
-    # file_name = 'data\embedding_matrix.pickle'
-
-    # # Open the file in read-binary ('rb') mode
-    # with open(file_name, 'rb') as file:
-    #     # Load the data from the file
-    #     data = pickle.load(file)
-
-    # example_1 = dataset["train"]["premise"][0]
-    # a = prepare_example(example_1, vocab)
-    # from model import Average_Encoder, Classifier
-    # encoder = Average_Encoder(len(data), 300, data, device) 
-    # classifier = Classifier(encoder, 300, device)
-
-    # print(encoder)
-    # dataset = load_data_debug()
-    # vocab = Vocabulary(dataset)
-    # vocab.build() 
-
-    # from torch.utils.data import DataLoader
-    # from functools import partial
-    # my_collate_fn = partial(prepare_minibatch, vocab = vocab)
-    # train_loader = DataLoader(dataset["train"], batch_size = 64, shuffle = True, collate_fn = my_collate_fn)
-
-    # for batch in train_loader:
-    #     x,y,z = batch[0], batch[1], batch[2]
-    #     print(x)
-    # print(train_loader)
-
-    #PROBLEME AVEC LA DATA 
-    # LE PROBLEME EST QUE LES INPUTS TENSORS QUI ONT DES MOTS REMPLACES PAR DES INDEX ONT UN INPUT PLUS GRAND QUE LA DATA MATRIX
-    # C NORMAL CELA VEUT DIRE QUE CERTAINS MOTS NONT PAS DEMBEDDINGS DANS LE GLOVE PRETRAINED VECTOR SET 
-    # CES MOTS DANS LA DAAT MATRIX SONT REFERES A DES UNKNOWN WORD IE DES INDEX 0 
-    # JUSTE REMPLACONS LES PAR 0

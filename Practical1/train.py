@@ -98,12 +98,8 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Loading of dataset")
     dataset = load_data()
-    # vocab = Vocabulary(dataset)
-    # vocab.build()
     print("Dataset loaded")
 
-    # with open('data.json', 'w') as infile:
-    #     json.dump(vocab.w2i, infile)
 
     print("Loading of Vocabulary")
     with open('data/data.json', 'r') as infile:
@@ -138,68 +134,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-#     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    
-#     # dataset = load_data_debug()
-#     # vocab = Vocabulary(dataset)
-#     # vocab.build() 
-
-#     # import pickle
-#     # # Replace 'file_name.pkl' with the name of your pickle file
-#     # file_name = 'Practical1\data\embedding_matrix.pickle'
-
-#     # # Open the file in read-binary ('rb') mode
-#     # with open(file_name, 'rb') as file:
-#     #     # Load the data from the file
-#     #     data = pickle.load(file)
-
-#     # model = Classifier(Average_Encoder(len(data), 300, data, device), 300, device)
-
-#     # from functools import partial
-#     # my_collate_fn = partial(prepare_minibatch, vocab = vocab)
-#     # train_loader = DataLoader(dataset["train"], batch_size = 8, shuffle = True, collate_fn = my_collate_fn)
-#     # val_loader = DataLoader(dataset["validation"], batch_size = 8, shuffle = True, collate_fn = my_collate_fn)
-
-#     # train_model(model, train_loader, val_loader, 1, 0.01, "test", device)
-
-
-
-
-
-
-
-
-
-
-
-
-#     from data import load_data_debug, Vocabulary, prepare_minibatch
-#     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#     dataset = load_data_debug()
-#     vocab = Vocabulary(dataset)
-#     vocab.build() 
-
-#     from torch.utils.data import DataLoader
-#     from functools import partial
-#     my_collate_fn = partial(prepare_minibatch, vocab = vocab)
-#     train_loader = DataLoader(dataset["train"], batch_size = 64, shuffle = True, collate_fn = my_collate_fn)
-#     val_loader = DataLoader(dataset["validation"], batch_size = 64, shuffle = True, collate_fn = my_collate_fn)
-#     import pickle
-#     # Replace 'file_name.pkl' with the name of your pickle file
-#     file_name = 'Practical1\data\embedding_matrix.pickle'
-
-#     # Open the file in read-binary ('rb') mode
-#     with open(file_name, 'rb') as file:
-#         # Load the data from the file
-#         data = pickle.load(file)
-
-#     from model import Average_Encoder, Classifier, Unidir_LSTM, Bidirect_LSTM,Bidirect_LSTM_Max_Pooling
-#     encoder_1 = Unidir_LSTM(len(data), 300, 2048, data, device) 
-#     encoder_2 = Average_Encoder(len(data), 300, data, device)
-#     encoder_3 = Bidirect_LSTM(len(data), 300, 2048, data, device)
-#     encoder_4 = Bidirect_LSTM_Max_Pooling(len(data), 300, 2048, data, device)
-
-#     classifier = Classifier(encoder, 300, device)
-
-#     train_model(classifier, train_loader, val_loader, 1, 0.01, "test", device)

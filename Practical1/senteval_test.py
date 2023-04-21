@@ -103,29 +103,6 @@ def batcher(params, batch, encoder, vocab):
     return logits.detach().numpy()
 
 
-
-    # embeddings = []
-
-    # for sent in batch:
-    #     sentvec = []
-    #     # the format of a sentence is a lists of words (tokenized and lowercased)
-    #     for word in sent:
-    #         if word in params.word_vec:
-    #             # [number of words, embedding dimensionality]
-    #             sentvec.append(params.word_vec[word])
-    #     if not sentvec:
-    #         vec = np.zeros(params.wvec_dim)
-    #         # [number of words, embedding dimensionality]
-    #         sentvec.append(vec)
-    #     # average of word embeddings for sentence representation
-    #     # [embedding dimansionality]
-    #     sentvec = np.mean(sentvec, 0)
-    #     embeddings.append(sentvec)
-    # # [batch size, embedding dimensionality]
-    # embeddings = np.vstack(embeddings)
-    return embeddings
-
-
 # Set params for SentEval
 # we use logistic regression (usepytorch: Fasle) and kfold 10
 # In this dictionary you can add extra information that you model needs for initialization
@@ -171,6 +148,5 @@ if __name__ == "__main__":
     transfer_tasks = ['MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'TREC',
                       'MRPC', 'SICKEntailment', 'STS14']
     # senteval prints the results and returns a dictionary with the scores
-    print(os.getcwd())
     results = se.eval(transfer_tasks)
     print(results)
